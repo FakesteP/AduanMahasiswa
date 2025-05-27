@@ -1,0 +1,81 @@
+### LOGIN
+POST http://localhost:5000/auth/login
+Content-Type: application/json
+
+{
+  "nim": "123",
+  "password": "1"
+}
+
+### LOGOUT
+POST http://localhost:5000/auth/logout
+Cookie: connect.sid=<ISI_COOKIE_SESSION_LOGIN_ANDA>
+
+
+### GET semua users
+GET http://localhost:5000/users
+Content-Type: application/json
+
+###
+
+### POST create user baru
+POST http://localhost:5000/users
+Content-Type: application/json
+
+{
+  "nama": "1",
+  "nim": "122",
+  "email": "12@example.com",
+  "password": "2",
+  "role": "mahasiswa"
+}
+
+###
+
+### GET user by id (ganti {id} dengan angka id yang valid)
+GET http://localhost:5000/users/2
+Content-Type: application/json
+
+### GET semua aduan (butuh autentikasi session)
+GET http://localhost:5000/aduan
+Content-Type: application/json
+Cookie: connect.sid=s%3AqsvYGSmMZ0evL74fHBqWpCn74UzEM8ux.bm6yyntZtukjJbwCxswWviuh8TDG53l3T1T7Qt70KpI
+
+###
+
+### Get all aduan user login
+GET http://localhost:5000/aduan
+Cookie: connect.sid=s%3AqsvYGSmMZ0evL74fHBqWpCn74UzEM8ux.bm6yyntZtukjJbwCxswWviuh8TDG53l3T1T7Qt70KpI
+Accept: application/json
+
+### Get aduan by id
+GET http://localhost:5000/aduan/1
+Cookie: connect.sid=s%3AqsvYGSmMZ0evL74fHBqWpCn74UzEM8ux.bm6yyntZtukjJbwCxswWviuh8TDG53l3T1T7Qt70KpI
+Accept: application/json
+
+### Create new aduan
+POST http://localhost:5000/aduan
+Cookie: connect.sid=s%3AqsvYGSmMZ0evL74fHBqWpCn74UzEM8ux.bm6yyntZtukjJbwCxswWviuh8TDG53l3T1T7Qt70KpI
+Content-Type: application/json
+
+{
+  "judul": "Keluhan Wifi kampus",
+  "isi": "Sinyal wifi di ruang kuliah sangat lemah.",
+  "status": "baru"
+}
+
+### Update aduan
+PUT http://localhost:5000/aduan/1
+Cookie: connect.sid=s%3AqsvYGSmMZ0evL74fHBqWpCn74UzEM8ux.bm6yyntZtukjJbwCxswWviuh8TDG53l3T1T7Qt70KpI
+Content-Type: application/json
+
+{
+  "judul": "Keluhan Wifi kampus diperbarui",
+  "isi": "Sinyal wifi di ruang kuliah sangat lemah dan sering putus.",
+  "status": "proses"
+}
+
+### Delete aduan
+DELETE http://localhost:5000/aduan/1
+Cookie: connect.sid=s%3AqsvYGSmMZ0evL74fHBqWpCn74UzEM8ux.bm6yyntZtukjJbwCxswWviuh8TDG53l3T1T7Qt70KpI
+Accept: application/json

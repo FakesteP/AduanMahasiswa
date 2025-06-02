@@ -9,7 +9,9 @@ const pgPool = new Pool({
   password: process.env.PG_PASSWORD,
   database: process.env.PG_DATABASE,
   port: 5432,
-  ssl: true, // ❗ matikan SSL untuk localhost
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 export default pgPool;

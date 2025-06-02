@@ -134,9 +134,6 @@ function ComplaintListAdmin({ token }) {
   return (
     <>
       <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">
-          Daftar Aduan (Admin)
-        </h2>
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300 rounded-md overflow-hidden">
             <thead className="bg-gray-100">

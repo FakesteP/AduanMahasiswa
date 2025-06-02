@@ -14,10 +14,29 @@ export const getAduan = async (req, res) => {
 export const getAduanByID = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // 1. Ambil aduan dari PostgreSQL
     const aduan = await AduanModel.getAduanById(id);
     if (!aduan)
       return res.status(404).json({ message: "Aduan tidak ditemukan" });
-    res.json(aduan);
+
+    // 2. Ambil user dari MySQL berdasarkan aduan.user_id
+    const user = await User.findByPk(aduan.user_id);
+
+    // 3. Gabungkan
+    const response = {
+      ...aduan,
+      tanggal_dibuat: aduan.tanggal_dibuat,
+      user: user
+        ? {
+            id: user.id,
+            nama: user.nama,
+            username: user.username,
+          }
+        : null,
+    };
+
+    res.json(response);
   } catch (error) {
     console.error("Error getAduanById:", error);
     res.status(500).json({ message: "Gagal mengambil data aduan" });

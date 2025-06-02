@@ -105,8 +105,23 @@ function ComplaintDetail({ token, aduanId, isAdmin, onUpdated, onBack }) {
       <p className="text-gray-800 whitespace-pre-wrap">{aduan.isi}</p>
 
       <div className="text-sm text-gray-500">
-        Diajukan oleh: <strong>{aduan.user?.nama || "Unknown"}</strong> <br />
-        Pada: {new Date(aduan.createdAt).toLocaleString()}
+        Diajukan oleh:{" "}
+        <strong>
+          {aduan.user?.nama || "Unknown"}{" "}
+          <span className="text-gray-400">{aduan.user?.username}</span>
+        </strong>
+        <br />
+        Pada:{" "}
+        {aduan.tanggal_dibuat
+          ? new Date(aduan.tanggal_dibuat).toLocaleString("id-ID", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })
+          : "-"}
       </div>
 
       {isAdmin && (

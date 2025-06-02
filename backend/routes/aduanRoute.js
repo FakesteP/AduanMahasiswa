@@ -5,14 +5,28 @@ import {
   createNewAduan,
   updateAduanById,
   deleteAduanById,
+  getStatsByStatus,
+  getStatsByStatusAdmin,
+  getAduanByUser,
 } from "../controller/aduanController.js";
+
+import {
+  isAuthenticated,
+  isAdmin,
+  isMahasiswa,
+} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", getAduan);
-router.get("/:id", getAduanByID);
-router.post("/", createNewAduan);
-router.put("/:id", updateAduanById);
-router.delete("/:id", deleteAduanById);
+router.get("/stats", isAuthenticated, getStatsByStatus); // HARUS DI ATAS :stats
+router.get("/admin/stats", isAuthenticated, isAdmin, getStatsByStatusAdmin);
+router.get("/user", isAuthenticated, isMahasiswa, getAduanByUser);
+
+router.get("/", isAuthenticated, getAduan);
+router.get("/:id", isAuthenticated, getAduanByID);
+router.post("/", isAuthenticated, isMahasiswa, createNewAduan);
+router.put("/:id", isAuthenticated, isAdmin, updateAduanById);
+router.patch("/:id", isAuthenticated, isAdmin, updateAduanById);
+router.delete("/:id", isAuthenticated, isAdmin, deleteAduanById);
 
 export default router;

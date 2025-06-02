@@ -7,7 +7,12 @@ import {
   deleteUser,
 } from "../controller/userController.js";
 
+import { isAuthenticated, isAdmin } from "../middleware/authMiddleware.js";
+
 const router = express.Router();
+
+router.use(isAuthenticated);
+router.use(isAdmin);
 
 router.get("/", getUsers);
 router.get("/:id", getUserById);

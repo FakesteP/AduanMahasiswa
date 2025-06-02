@@ -1,8 +1,6 @@
 import express from "express";
-import session from "express-session";
 import cors from "cors";
 import dotenv from "dotenv";
-import { isAuthenticated } from "./middleware/authMiddleware.js";
 
 // Import database config
 import db from "./config/mysql.js"; // MySQL (Sequelize)
@@ -13,6 +11,8 @@ import userRoute from "./routes/userRoute.js";
 import aduanRoute from "./routes/aduanRoute.js";
 import authRoute from "./routes/authRoute.js";
 
+import { isAuthenticated } from "./middleware/authMiddleware.js";
+
 dotenv.config();
 
 const app = express();
@@ -20,22 +20,11 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:3000", // Ganti sesuai client kamu
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
 app.use(express.json());
-app.use(
-  session({
-    secret: "session_rahasia", // Ganti dengan secret yang kuat
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      secure: false, // true jika HTTPS
-      httpOnly: true,
-    },
-  })
-);
 
 // Tes koneksi database
 (async () => {
@@ -50,9 +39,9 @@ app.use(
   }
 })();
 
-// Routes tanpa prefix /api
+// Routes
 app.use("/users", userRoute);
-app.use("/aduan", isAuthenticated, aduanRoute);
+app.use("/aduan", isAuthenticated, aduanRoute); // middleware JWT nanti pakai isAuthenticated
 app.use("/auth", authRoute);
 
 // Default route

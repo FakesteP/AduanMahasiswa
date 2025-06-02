@@ -23,11 +23,11 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "nama": "Andi",
-  "nim": "123456",
-  "email": "andi@mail.com",
-  "password": "123",
-  "role": "mahasiswa"
+  "nama": "admin",
+  "nim": "000000",
+  "email": "admin@mail.com",
+  "password": "000000",
+  "role": "admin"
 }
 
 ### UPDATE USER (admin only)

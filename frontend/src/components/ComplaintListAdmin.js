@@ -127,6 +127,33 @@ function ComplaintListAdmin({ token }) {
     }
   }
 
+  async function handleDelete(id, judul) {
+    const confirmDelete = window.confirm(
+      `Apakah Anda yakin ingin menghapus aduan "${judul}"? Tindakan ini tidak dapat dibatalkan.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`${Base_Url}/aduan/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Gagal menghapus aduan");
+      }
+
+      setAduanList((prev) => prev.filter((aduan) => aduan.id !== id));
+      alert("Aduan berhasil dihapus");
+    } catch (err) {
+      alert(`Error menghapus aduan: ${err.message}`);
+    }
+  }
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
   if (aduanList.length === 0) return <p>Belum ada aduan.</p>;
@@ -154,7 +181,7 @@ function ComplaintListAdmin({ token }) {
                   Ubah Status
                 </th>
                 <th className="border-b px-5 py-3 text-center text-sm font-semibold text-gray-700">
-                  Detail
+                  Aksi
                 </th>
               </tr>
             </thead>
@@ -211,13 +238,22 @@ function ComplaintListAdmin({ token }) {
                     </select>
                   </td>
                   <td className="border-b px-5 py-3 text-center">
-                    <button
-                      onClick={() => setSelectedAduan(aduan)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-md shadow-md transition-colors duration-200"
-                      aria-label={`Lihat detail aduan ${aduan.judul}`}
-                    >
-                      Lihat Detail
-                    </button>
+                    <div className="flex justify-center space-x-2">
+                      <button
+                        onClick={() => setSelectedAduan(aduan)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md shadow-md transition-colors duration-200 text-sm"
+                        aria-label={`Lihat detail aduan ${aduan.judul}`}
+                      >
+                        Detail
+                      </button>
+                      <button
+                        onClick={() => handleDelete(aduan.id, aduan.judul)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md shadow-md transition-colors duration-200 text-sm"
+                        aria-label={`Hapus aduan ${aduan.judul}`}
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

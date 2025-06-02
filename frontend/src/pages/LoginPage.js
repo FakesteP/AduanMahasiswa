@@ -30,10 +30,14 @@ function LoginPage({ setToken }) {
     setError("");
 
     try {
+      console.log("Attempting login to:", `${Base_Url}/auth/login`);
+      console.log("Login data:", { nim, password: "***" });
+
       const res = await axios.post(`${Base_Url}/auth/login`, { nim, password });
       const { token, user } = res.data;
 
-      if (!token || !user) throw new Error("Login gagal: Token atau user tidak valid");
+      if (!token || !user)
+        throw new Error("Login gagal: Token atau user tidak valid");
 
       setToken(token);
       // Simpan token dan role ke localStorage supaya tetap login walau reload
@@ -44,7 +48,17 @@ function LoginPage({ setToken }) {
       else if (user.role === "mahasiswa") navigate("/dashboard-mahasiswa");
       else navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Gagal login");
+      console.error("Login error:", err);
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+
+      if (err.response?.status === 500) {
+        setError(
+          "Server sedang bermasalah. Silakan coba lagi nanti atau hubungi administrator."
+        );
+      } else {
+        setError(err.response?.data?.message || err.message || "Gagal login");
+      }
     } finally {
       setLoading(false);
     }
@@ -53,7 +67,9 @@ function LoginPage({ setToken }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 flex items-center justify-center">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border border-blue-100">
-        <h2 className="text-2xl font-bold text-center text-blue-700 mb-6">Login Pengguna</h2>
+        <h2 className="text-2xl font-bold text-center text-blue-700 mb-6">
+          Login Pengguna
+        </h2>
 
         {error && (
           <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm text-center">
@@ -63,7 +79,9 @@ function LoginPage({ setToken }) {
 
         <form onSubmit={handleLogin}>
           <div className="mb-4">
-            <label htmlFor="nim" className="block text-gray-600 mb-1">NIM</label>
+            <label htmlFor="nim" className="block text-gray-600 mb-1">
+              NIM
+            </label>
             <input
               type="text"
               id="nim"
@@ -75,7 +93,9 @@ function LoginPage({ setToken }) {
           </div>
 
           <div className="mb-6">
-            <label htmlFor="password" className="block text-gray-600 mb-1">Password</label>
+            <label htmlFor="password" className="block text-gray-600 mb-1">
+              Password
+            </label>
             <input
               type="password"
               id="password"

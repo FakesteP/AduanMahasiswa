@@ -8,6 +8,7 @@ function ComplaintForm({ token, onSuccess }) {
   const [kategori, setKategori] = useState("");
   const [judul, setJudul] = useState("");
   const [isi, setIsi] = useState("");
+  const [lampiran, setLampiran] = useState(null); // Tambah state untuk file
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -30,18 +31,22 @@ function ComplaintForm({ token, onSuccess }) {
     setMessage("");
 
     try {
+      const formData = new FormData();
+      formData.append("judul", judul);
+      formData.append("isi", isi);
+      formData.append("kategori", kategori);
+      formData.append("status", "proses");
+      if (lampiran) {
+        formData.append("lampiran", lampiran);
+      }
+
       const res = await fetch(`${Base_Url}/aduan`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          // Jangan set Content-Type, biarkan browser yang set (multipart/form-data)
         },
-        body: JSON.stringify({
-          judul,
-          isi,
-          kategori,
-          status: "proses",
-        }),
+        body: formData,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal mengirim aduan");
@@ -50,6 +55,7 @@ function ComplaintForm({ token, onSuccess }) {
       setJudul("");
       setIsi("");
       setKategori("");
+      setLampiran(null);
       if (onSuccess) onSuccess();
     } catch (err) {
       setMessage(`❌ ${err.message}`);
@@ -102,7 +108,11 @@ function ComplaintForm({ token, onSuccess }) {
           </div>
         </>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-8"
+          encType="multipart/form-data"
+        >
           <p className="text-gray-700 text-2xl text-center">
             <span className="font-semibold">Kategori yang dipilih:</span>{" "}
             <span className="italic text-blue-600">{kategori}</span>
@@ -128,6 +138,13 @@ function ComplaintForm({ token, onSuccess }) {
               focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-transparent
               placeholder-gray-400 transition resize-none text-gray-800 font-semibold text-lg"
             required
+          />
+
+          <input
+            type="file"
+            accept=".pdf,image/*"
+            onChange={(e) => setLampiran(e.target.files[0])}
+            className="w-full border border-gray-300 rounded-lg px-6 py-4"
           />
 
           <button

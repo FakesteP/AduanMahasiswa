@@ -55,6 +55,35 @@ function ComplaintDetail({ token, aduanId, isAdmin, onUpdated, onBack }) {
   if (error) return <p className="text-red-600">Error: {error}</p>;
   if (!aduan) return <p>Tidak ada data aduan</p>;
 
+  // Tambahkan fungsi untuk download lampiran
+  const handleDownloadLampiran = async () => {
+    try {
+      const res = await fetch(`${Base_Url}/aduan/${aduanId}/lampiran`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Lampiran tidak ditemukan");
+      const blob = await res.blob();
+      // Dapatkan ekstensi file dari response header jika ada
+      const contentDisposition = res.headers.get("Content-Disposition");
+      let filename = "lampiran";
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) filename = match[1];
+      }
+      // Buat link download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const getStatusColor = (st) => {
     switch (st) {
       case "pending":
@@ -123,6 +152,18 @@ function ComplaintDetail({ token, aduanId, isAdmin, onUpdated, onBack }) {
             })
           : "-"}
       </div>
+
+      {/* Tambahkan tombol download lampiran jika ada */}
+      {aduan.lampiran && (
+        <div className="mt-4">
+          <button
+            onClick={handleDownloadLampiran}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition"
+          >
+            Download Lampiran
+          </button>
+        </div>
+      )}
 
       {isAdmin && (
         <div className="flex flex-wrap gap-2 pt-4 border-t mt-4">

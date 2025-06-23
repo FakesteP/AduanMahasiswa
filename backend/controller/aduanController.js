@@ -1,9 +1,10 @@
-import * as AduanModel from "../model/aduanModel.js"; // sesuaikan nama model
+import Aduan from "../model/aduanModel.js";
 import User from "../model/userModel.js";
+import sequelizePg from "../config/postgresql.js";
 
 export const getAduan = async (req, res) => {
   try {
-    const aduans = await AduanModel.getAllAduan();
+    const aduans = await Aduan.findAll({ order: [["tanggal_dibuat", "DESC"]] });
     res.json(aduans);
   } catch (error) {
     console.error("Error getAduans:", error);
@@ -14,19 +15,12 @@ export const getAduan = async (req, res) => {
 export const getAduanByID = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // 1. Ambil aduan dari PostgreSQL
-    const aduan = await AduanModel.getAduanById(id);
+    const aduan = await Aduan.findByPk(id);
     if (!aduan)
       return res.status(404).json({ message: "Aduan tidak ditemukan" });
-
-    // 2. Ambil user dari MySQL berdasarkan aduan.user_id
     const user = await User.findByPk(aduan.user_id);
-
-    // 3. Gabungkan
     const response = {
-      ...aduan,
-      tanggal_dibuat: aduan.tanggal_dibuat,
+      ...aduan.dataValues,
       user: user
         ? {
             id: user.id,
@@ -35,7 +29,6 @@ export const getAduanByID = async (req, res) => {
           }
         : null,
     };
-
     res.json(response);
   } catch (error) {
     console.error("Error getAduanById:", error);
@@ -45,26 +38,28 @@ export const getAduanByID = async (req, res) => {
 
 export const createNewAduan = async (req, res) => {
   try {
-    const userId = req.user.id; // dari middleware JWT
+    const userId = req.user.id;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
-
-    // Validasi user ada di DB
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
-
     const { judul, isi, status, kategori } = req.body;
     if (!judul || !isi) {
       return res.status(400).json({ message: "Judul dan isi wajib diisi" });
     }
 
-    const newAduan = await AduanModel.createNewAduan({
+    // Ambil file lampiran dari multer (jika ada)
+    const lampiran = req.file ? req.file.buffer : null;
+
+    const newAduan = await Aduan.create({
       user_id: userId,
       judul,
       isi,
       status: status || "pending",
       kategori: kategori || null,
+      tanggal_dibuat: new Date(),
+      tanggal_diperbarui: new Date(),
+      lampiran: lampiran,
     });
-
     res.status(201).json(newAduan);
   } catch (error) {
     console.error("Error createAduan:", error);
@@ -76,19 +71,22 @@ export const updateAduanById = async (req, res) => {
   try {
     const { id } = req.params;
     const { judul, isi, status, kategori } = req.body;
-
-    const aduan = await AduanModel.getAduanById(id);
+    const aduan = await Aduan.findByPk(id);
     if (!aduan)
       return res.status(404).json({ message: "Aduan tidak ditemukan" });
 
-    const updatedAduan = await AduanModel.updateAduanById(id, {
+    // Ambil file lampiran dari multer (jika ada update)
+    const lampiran = req.file ? req.file.buffer : aduan.lampiran;
+
+    await aduan.update({
       judul: judul || aduan.judul,
       isi: isi || aduan.isi,
       status: status || aduan.status,
       kategori: kategori || aduan.kategori,
+      tanggal_diperbarui: new Date(),
+      lampiran: lampiran,
     });
-
-    res.json(updatedAduan);
+    res.json(aduan);
   } catch (error) {
     console.error("Error updateAduan:", error);
     res.status(500).json({ message: "Gagal memperbarui aduan" });
@@ -98,24 +96,31 @@ export const updateAduanById = async (req, res) => {
 export const deleteAduanById = async (req, res) => {
   try {
     const { id } = req.params;
-    const aduan = await AduanModel.getAduanById(id);
+    const aduan = await Aduan.findByPk(id);
     if (!aduan)
       return res.status(404).json({ message: "Aduan tidak ditemukan" });
-
-    await AduanModel.deleteAduan(id);
+    await aduan.destroy();
     res.json({ message: "Aduan berhasil dihapus" });
   } catch (error) {
     console.error("Error deleteAduan:", error);
     res.status(500).json({ message: "Gagal menghapus aduan" });
   }
 };
+
 export const getStatsByStatus = async (req, res) => {
   try {
-    const userId = req.user.id; // dari middleware auth
+    const userId = req.user.id;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
-    const stats = await AduanModel.countByStatus(userId);
-    res.json(stats); // kirim array statistik status
+    const stats = await Aduan.findAll({
+      attributes: [
+        "status",
+        [sequelizePg.fn("COUNT", sequelizePg.col("status")), "count"],
+      ],
+      where: { user_id: userId },
+      group: ["status"],
+      raw: true,
+    });
+    res.json(stats);
   } catch (error) {
     console.error("Error getStatsByStatus:", error);
     res.status(500).json({ error: "Gagal mengambil statistik aduan." });
@@ -124,7 +129,14 @@ export const getStatsByStatus = async (req, res) => {
 
 export const getStatsByStatusAdmin = async (req, res) => {
   try {
-    const stats = await AduanModel.countByStatusAll();
+    const stats = await Aduan.findAll({
+      attributes: [
+        "status",
+        [sequelizePg.fn("COUNT", sequelizePg.col("status")), "count"],
+      ],
+      group: ["status"],
+      raw: true,
+    });
     res.json(stats);
   } catch (error) {
     console.error("Error getStatsByStatusAdmin:", error);
@@ -136,11 +148,42 @@ export const getAduanByUser = async (req, res) => {
   try {
     const userId = req.user.id;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
-
-    const aduans = await AduanModel.getAduanByUser(userId);
+    const aduans = await Aduan.findAll({
+      where: { user_id: userId },
+      order: [["tanggal_dibuat", "DESC"]],
+    });
     res.json(aduans);
   } catch (error) {
     console.error("Error getAduanByUser:", error);
     res.status(500).json({ message: "Gagal mengambil data aduan user" });
+  }
+};
+
+// Endpoint untuk download lampiran
+export const downloadLampiran = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const aduan = await Aduan.findByPk(id);
+
+    if (!aduan) {
+      return res.status(404).json({ message: "Aduan tidak ditemukan" });
+    }
+
+    if (!aduan.lampiran) {
+      return res.status(404).json({ message: "Lampiran tidak ditemukan" });
+    }
+
+    // Set header untuk download file
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="lampiran-${id}"`
+    );
+
+    // Kirim file buffer
+    res.send(aduan.lampiran);
+  } catch (error) {
+    console.error("Error downloadLampiran:", error);
+    res.status(500).json({ message: "Gagal download lampiran" });
   }
 };

@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 // Import database config
 import db from "./config/mysql.js"; // MySQL (Sequelize)
-import pgPool from "./config/postgresql.js"; // PostgreSQL (pg)
+import sequelizePg from "./config/postgresql.js"; // PostgreSQL (pg)
 
 // Import routes
 import userRoute from "./routes/userRoute.js";
@@ -32,8 +32,12 @@ app.use(express.json());
     await db.authenticate();
     console.log("✅ Koneksi ke MySQL berhasil.");
 
-    await pgPool.query("SELECT NOW()");
+    await sequelizePg.authenticate();
     console.log("✅ Koneksi ke PostgreSQL berhasil.");
+
+    // Sinkronisasi semua model Sequelize PostgreSQL dengan alter
+    await sequelizePg.sync({ alter: true });
+    console.log("✅ Model PostgreSQL disinkronisasi dengan alter.");
   } catch (error) {
     console.error("❌ Gagal koneksi ke database:", error);
   }

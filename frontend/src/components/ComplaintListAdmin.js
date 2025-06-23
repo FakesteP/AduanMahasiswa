@@ -181,6 +181,9 @@ function ComplaintListAdmin({ token }) {
                   Ubah Status
                 </th>
                 <th className="border-b px-5 py-3 text-center text-sm font-semibold text-gray-700">
+                  Lampiran
+                </th>
+                <th className="border-b px-5 py-3 text-center text-sm font-semibold text-gray-700">
                   Aksi
                 </th>
               </tr>
@@ -236,6 +239,51 @@ function ComplaintListAdmin({ token }) {
                       <option value="batal">Batal</option>
                       <option value="tolak">Tolak</option>
                     </select>
+                  </td>
+                  <td className="border-b px-5 py-3 text-center">
+                    {aduan.lampiran ? (
+                      <button
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(
+                              `${Base_Url}/aduan/${aduan.id}/lampiran`,
+                              {
+                                headers: { Authorization: `Bearer ${token}` },
+                              }
+                            );
+                            if (!res.ok)
+                              throw new Error("Lampiran tidak ditemukan");
+                            const blob = await res.blob();
+                            const contentDisposition = res.headers.get(
+                              "Content-Disposition"
+                            );
+                            let filename = "lampiran";
+                            if (contentDisposition) {
+                              const match = contentDisposition.match(
+                                /filename="?([^"]+)"?/
+                              );
+                              if (match) filename = match[1];
+                            }
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
+                          } catch (err) {
+                            alert(err.message);
+                          }
+                        }}
+                        type="button"
+                      >
+                        Download
+                      </button>
+                    ) : (
+                      <span className="text-gray-400 text-xs">-</span>
+                    )}
                   </td>
                   <td className="border-b px-5 py-3 text-center">
                     <div className="flex justify-center space-x-2">

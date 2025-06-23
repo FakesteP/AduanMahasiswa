@@ -30,6 +30,19 @@ Authorization: Bearer {{token}}
   "role": "admin"
 }
 
+### CREATE ADMIN USER (admin only)
+POST http://localhost:5000/users
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nama": "Super Admin",
+  "nim": "123123111",
+  "email": "superadmin@mail.com",
+  "password": "123123",
+  "role": "admin"
+}
+
 ### UPDATE USER (admin only)
 PUT http://localhost:5000/users/2
 Content-Type: application/json

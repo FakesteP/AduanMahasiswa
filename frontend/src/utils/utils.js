@@ -1,5 +1,5 @@
 export const Base_Url =
-  "https://api-aduan-mahasiswa-1061342868557.us-central1.run.app";
+  "http://localhost:5000"; // Ganti dengan URL backend Anda
 
 // Function to test API connection
 export const testConnection = async () => {

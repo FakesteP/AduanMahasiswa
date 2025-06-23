@@ -49,6 +49,8 @@ export const createNewAduan = async (req, res) => {
 
     // Ambil file lampiran dari multer (jika ada)
     const lampiran = req.file ? req.file.buffer : null;
+    const lampiran_nama = req.file ? req.file.originalname : null;
+    const lampiran_type = req.file ? req.file.mimetype : null;
 
     const newAduan = await Aduan.create({
       user_id: userId,
@@ -59,6 +61,8 @@ export const createNewAduan = async (req, res) => {
       tanggal_dibuat: new Date(),
       tanggal_diperbarui: new Date(),
       lampiran: lampiran,
+      lampiran_nama: lampiran_nama,
+      lampiran_type: lampiran_type,
     });
     res.status(201).json(newAduan);
   } catch (error) {
@@ -77,6 +81,8 @@ export const updateAduanById = async (req, res) => {
 
     // Ambil file lampiran dari multer (jika ada update)
     const lampiran = req.file ? req.file.buffer : aduan.lampiran;
+    const lampiran_nama = req.file ? req.file.originalname : aduan.lampiran_nama;
+    const lampiran_type = req.file ? req.file.mimetype : aduan.lampiran_type;
 
     await aduan.update({
       judul: judul || aduan.judul,
@@ -85,6 +91,8 @@ export const updateAduanById = async (req, res) => {
       kategori: kategori || aduan.kategori,
       tanggal_diperbarui: new Date(),
       lampiran: lampiran,
+      lampiran_nama: lampiran_nama,
+      lampiran_type: lampiran_type,
     });
     res.json(aduan);
   } catch (error) {
@@ -173,14 +181,13 @@ export const downloadLampiran = async (req, res) => {
       return res.status(404).json({ message: "Lampiran tidak ditemukan" });
     }
 
-    // Set header untuk download file
-    res.setHeader("Content-Type", "application/octet-stream");
+    const filename = aduan.lampiran_nama || `lampiran-${id}`;
+    const filetype = aduan.lampiran_type || "application/octet-stream";
+    res.setHeader("Content-Type", filetype);
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="lampiran-${id}"`
+      `attachment; filename="${encodeURIComponent(filename)}"`
     );
-
-    // Kirim file buffer
     res.send(aduan.lampiran);
   } catch (error) {
     console.error("Error downloadLampiran:", error);

@@ -19,6 +19,8 @@ const Aduan = sequelizePg.define(
     tanggal_diperbarui: DataTypes.DATE,
     kategori: DataTypes.STRING,
     lampiran: DataTypes.BLOB, // untuk menyimpan file PDF/gambar
+    lampiran_nama: DataTypes.STRING, // nama file asli
+    lampiran_type: DataTypes.STRING, // tipe file asli
   },
   {
     tableName: "aduan_mahasiswa",
